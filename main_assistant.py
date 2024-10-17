@@ -225,11 +225,24 @@ import logging
 def process_gemini_response(response):
     try:
         response_data = json.loads(response)
-        tool_name = response_data['tool']
-        inputs = response_data['inputs']
+        tool_name = response_data.get('tool')
+        inputs = response_data.get('inputs', {})
+        
+        # Check if tool_name is valid
+        if tool_name is None:
+            logging.error("Tool name is missing in the response.")
+            raise ValueError("Tool name is missing in the response.")
+        
         return tool_name, inputs
+    
+    except json.JSONDecodeError:
+        logging.error("Failed to decode JSON response from Gemini AI.")
+        return None, None
+    except ValueError as ve:
+        logging.error(f"Value error: {ve}")
+        return None, None
     except Exception as e:
-        logging.error(f"Error processing Gemini AI response: {e}")
+        logging.error(f"Unexpected error while processing response: {e}")
         return None, None
 
 # Predefined headstart options
